@@ -1,6 +1,7 @@
 import tensorflow as tf
+print("tensorflow version",tf.__version__)
 from tensorflow.keras import Input, Model, layers, models, applications, optimizers
-from tensorflow.keras.layers.experimental.preprocessing import RandomFlip, RandomRotation, RandomZoom, Rescaling
+from tensorflow.keras.layers import RandomFlip, RandomRotation, RandomZoom, Rescaling
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
 import numpy as np
@@ -21,9 +22,8 @@ class Trainer():
         self.buffer_size = None
         self.shuffle_dataframe = None
         self.AUTOTUNE = tf.data.AUTOTUNE
-        self.class_names = np.array(['abstract', 'color_field_painting', 'cubism', 'expressionism',
-                            'impressionism', 'realism', 'renaissance', 'romanticism'])
-        self.num_classes = 8
+        self.class_names = np.array(['cartoon', 'others'])
+        self.num_classes = 2
         self.image_count = None
         self.img_height = None
         self.img_width = None
@@ -311,8 +311,8 @@ class Trainer():
             self.train_ds,
             epochs=self.epochs,
             validation_data=self.val_ds,
-            callbacks=callbacks,
-            use_multiprocessing=True)
+            callbacks=callbacks#,use_multiprocessing=True
+            )
 
         return self.history
 
