@@ -9,9 +9,11 @@ IMAGE_HEIGHT=224
 IMAGE_WIDTH=224
 CLASS_NAMES = ['cartoon', 'others']
 
-IMAGE_DIR="/home/test/data/laion400m-data"
-OUTPUT_DIR="/home/test/data/dataset_predict_output"
-
+IMAGE_DIR="/home/test/data/predict_input"
+OUTPUT_DIR1="/home/test/data/predict_output/1"
+OUTPUT_DIR2="/home/test/data/predict_output/2"
+os.makedirs(os.path.join(OUTPUT_DIR1), exist_ok=True)
+os.makedirs(os.path.join(OUTPUT_DIR2), exist_ok=True)
 
 
 class Predictor():
@@ -40,14 +42,18 @@ predictor = Predictor(IMAGE_HEIGHT, IMAGE_WIDTH,CLASS_NAMES)
 predictor.load_model(MODEL_PATH)
 
 images = [f for f in os.listdir(IMAGE_DIR) if os.path.isfile(os.path.join(IMAGE_DIR, f)) and f.endswith(".jpg")]
-os.makedirs(os.path.join(OUTPUT_DIR,"cartoon"), exist_ok=True)
+images.sort()
+
 for img in images:
     if not img.endswith(".jpg"):
         continue
     image = tf.io.read_file(os.path.join(IMAGE_DIR, img))
     result = predictor.get_prediction(image)
-    # if the model predicts cartoon, move to new folder. Otherwise delete the image.
-    if np.argmax(result[0]) == 0:
-        shutil.move(os.path.join(IMAGE_DIR, img), os.path.join(OUTPUT_DIR, "cartoon", img))
-    else:
-        os.remove(os.path.join(IMAGE_DIR, img))
+    print(img,result[0])
+    # # if the model predicts cartoon, move to new folder. Otherwise delete the image.
+    # if result[0][0]>result[0][1] and result[0][0]>0.8:
+    #     # shutil.move(os.path.join(IMAGE_DIR, img), os.path.join(OUTPUT_DIR1, img))
+    #     shutil.copy(os.path.join(IMAGE_DIR, img), os.path.join(OUTPUT_DIR1, img))
+    # else:
+    #     # os.remove(os.path.join(IMAGE_DIR, img))
+    #     shutil.copy(os.path.join(IMAGE_DIR, img), os.path.join(OUTPUT_DIR2, img))
