@@ -326,8 +326,10 @@ class Trainer():
 
         if not self.save_model_path:
             self.save_model_path = os.path.join(
-                '..','..','models', self.experiment_name, self.model_name, f"{recorded_time}-images_{self.image_count}-unfreeze_{self.trainable_layers}-batch_{self.batch_size}")
-
+                '..','models', self.experiment_name, self.model_name, f"{recorded_time}-images_{self.image_count}-unfreeze_{self.trainable_layers}-batch_{self.batch_size}.keras")
+        print("test",self.save_model_path)
+        # create directory if it does not exist
+        os.makedirs(os.path.dirname(self.save_model_path), exist_ok=True)
         self.model.save(self.save_model_path)
 
     def load_model(self, load_model_path):
