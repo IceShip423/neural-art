@@ -166,7 +166,7 @@ class Trainer():
         self.learning_rate=learning_rate
 
         assert self.model_name in {
-            "VGG16", "ResNet50", "custom_1", "custom_2"}, "Choose a model among the following ones: 'VGG16', 'ResNet50', 'custom_1', 'custom_2"
+            "VGG16", "ResNet50", "custom_1", "custom_2", "fine_tune"}, "Choose a model among the following ones: 'VGG16', 'ResNet50', 'custom_1', 'custom_2"
 
         data_augmentation_layers = self.get_data_augmentation_layers()
 
@@ -269,6 +269,14 @@ class Trainer():
             self.model.add(layers.Dropout(0.5))
             self.model.add(layers.Dense(8))
             self.model.add(layers.Activation('softmax'))
+
+        if self.model_name == 'fine_tune':
+            assert self.load_model_path, "Load a model first"
+            self.model = models.load_model(self.load_model_path)
+            self.model.trainable = False
+            for layer in self.model.layers[-self.trainable_layers:]:
+                layer.trainable = True
+
 
         self.model.compile(optimizer=optimizers.Adamax(learning_rate=self.learning_rate),
                            loss='categorical_crossentropy',

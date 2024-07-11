@@ -4,44 +4,50 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.keras import models
 
-MODEL_PATH="/home/test/CF2/models/test_trainer/VGG16/20240702-112759-images_2560-unfreeze_2-batch_32.keras"
-IMAGE_HEIGHT=224
-IMAGE_WIDTH=224
-CLASS_NAMES = ['cartoon', 'others']
+MODEL_PATH = "/home/test/CF2/models/test_trainer/VGG16/20240702-112759-images_2560-unfreeze_2-batch_32.keras"
+IMAGE_HEIGHT = 224
+IMAGE_WIDTH = 224
+CLASS_NAMES = ["cartoon", "others"]
 
-IMAGE_DIR="/home/test/data/predict_input"
-OUTPUT_DIR1="/home/test/data/predict_output/1"
-OUTPUT_DIR2="/home/test/data/predict_output/2"
+IMAGE_DIR = "/home/test/data/laion400m-data"
+OUTPUT_DIR1 = "/home/test/data/predict_output/1"
+OUTPUT_DIR2 = "/home/test/data/predict_output/2"
 os.makedirs(os.path.join(OUTPUT_DIR1), exist_ok=True)
 os.makedirs(os.path.join(OUTPUT_DIR2), exist_ok=True)
 
 
-class Predictor():
-    def __init__(self, img_height=224,img_width=224,class_names=['cartoon', 'others']):
+class Predictor:
+    def __init__(
+        self, img_height=224, img_width=224, class_names=["cartoon", "others"]
+    ):
         self.model = None
         self.model_path = None
         self.img_height = img_height
         self.img_width = img_width
         self.class_names = class_names
 
-    def decode_image(self,image):
+    def decode_image(self, image):
         # convert the compressed string to a 3D uint8 tensor
         img = tf.io.decode_jpeg(tf.constant(image), channels=3)
-        return tf.image.resize(img,[self.img_height, self.img_width])
+        return tf.image.resize(img, [self.img_height, self.img_width])
 
-    def load_model(self,model_path):
+    def load_model(self, model_path):
         self.model_path = model_path
         self.model = models.load_model(model_path)
 
-    def get_prediction(self,image):
+    def get_prediction(self, image):
         assert self.model, "Please load a model using the load_model() method"
         return self.model.predict(tf.expand_dims(self.decode_image(image), axis=0))
 
 
-predictor = Predictor(IMAGE_HEIGHT, IMAGE_WIDTH,CLASS_NAMES)
+predictor = Predictor(IMAGE_HEIGHT, IMAGE_WIDTH, CLASS_NAMES)
 predictor.load_model(MODEL_PATH)
 
-images = [f for f in os.listdir(IMAGE_DIR) if os.path.isfile(os.path.join(IMAGE_DIR, f)) and f.endswith(".jpg")]
+images = [
+    f
+    for f in os.listdir(IMAGE_DIR)
+    if os.path.isfile(os.path.join(IMAGE_DIR, f)) and f.endswith(".jpg")
+]
 images.sort()
 
 for img in images:
@@ -49,11 +55,11 @@ for img in images:
         continue
     image = tf.io.read_file(os.path.join(IMAGE_DIR, img))
     result = predictor.get_prediction(image)
-    print(img,result[0])
-    # # if the model predicts cartoon, move to new folder. Otherwise delete the image.
-    # if result[0][0]>result[0][1] and result[0][0]>0.8:
-    #     # shutil.move(os.path.join(IMAGE_DIR, img), os.path.join(OUTPUT_DIR1, img))
-    #     shutil.copy(os.path.join(IMAGE_DIR, img), os.path.join(OUTPUT_DIR1, img))
-    # else:
-    #     # os.remove(os.path.join(IMAGE_DIR, img))
-    #     shutil.copy(os.path.join(IMAGE_DIR, img), os.path.join(OUTPUT_DIR2, img))
+    print(img, result[0])
+    # if the model predicts cartoon, move to new folder. Otherwise delete the image.
+    if result[0][0] > result[0][1] and result[0][0] > 0.99:
+        shutil.move(os.path.join(IMAGE_DIR, img), os.path.join(OUTPUT_DIR1, img))
+        # shutil.copy(os.path.join(IMAGE_DIR, img), os.path.join(OUTPUT_DIR1, img))
+    else:
+        os.remove(os.path.join(IMAGE_DIR, img))
+        # shutil.copy(os.path.join(IMAGE_DIR, img), os.path.join(OUTPUT_DIR2, img))
